@@ -6,7 +6,7 @@
 package Math::Geometry::Planar::Offset;
 
 
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 use vars qw(
             $VERSION
@@ -19,6 +19,7 @@ use vars qw(
 
 use strict;
 use Carp;
+use Math::Geometry::Planar;
 
 $debug     = 1;
 $precision = 7;
@@ -95,15 +96,10 @@ sub OffsetPolygon {
   my @newpoints1;
 
   # set limit on number of recursions
-  #(total number of nodes in recursion tree).
-  # this is mainly for programming safety, and 
-  # may not be required in a production environment, 
-  # but to prevent complete lock-up, maybe just make it big.
-  # note that perl may have its own limit to the number of scopes generated.
+  # does perl have its own limit to the number of scopes generated?
   if($offset_depth > 100){print "reached recursion depth_limit\n";return();};
-  # FIXME:  $offset_depth would have to be reset by calling script 
-  # (should actually be incremented and decremented on each side of recursive call)
-  # $offset_depth++;
+  #ew: $offset_depth would have had to be reset by calling script 
+  # (now is incremented and decremented on each side of recursive call)
   my $npoints = @{$loc_points};
   $debug && print "points: ", $npoints, "\n";
   $debug && print "number of points $npoints\n";
@@ -361,7 +357,9 @@ sub OffsetPolygon {
       $npoints--;
       # @{$newpoints[$npoints]} = @{$newpoints[0]};
       $new_offset = $offset - $first_time * $time_dir;  # put a direction on it.
+			$offset_depth++;
       @outlist = OffsetPolygon(\@newpoints,$new_offset) ;
+			$offset_depth--;
       return(@outlist);
     } elsif ($first_event eq "split") {
       # make two polygons and call yourself with time adjusted.
@@ -418,8 +416,16 @@ sub OffsetPolygon {
       shift(@result1);
       $#result2 = 0;
       shift(@result2);
-      if($num>2){@result1 = OffsetPolygon(\@newpoints,$new_offset);}else{$debug && print "too few on first\n";};
-      if($num1>2){@result2 = OffsetPolygon(\@newpoints1,$new_offset);}else{$debug && print "too few on second\n";};
+      if($num>2){
+			$offset_depth++;	
+			@result1 = OffsetPolygon(\@newpoints,$new_offset);
+			$offset_depth--;
+			}else{$debug && print "too few on first\n";};
+      if($num1>2){
+			$offset_depth++;	
+			@result2 = OffsetPolygon(\@newpoints1,$new_offset);
+			$offset_depth--;
+			}else{$debug && print "too few on second\n";};
       #@result1 = offset_polygon($new_offset,\@newpoints);
       #@result2 = offset_polygon($new_offset,\@newpoints1);
       return(@result1, @result2);  # This concatenates the list.

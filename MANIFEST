@@ -1,6 +1,7 @@
-README
 Changes
 Offset.pm
-MANIFEST
 Makefile.PL
-t/Offset.t
+MANIFEST
+README
+test.pl
+META.yml

@@ -1,70 +1,69 @@
-Offset.pm -- A polygon offset package
+NAME
+    Math::Geometry::Planar::Offset - Calculate offset polygons
 
-ABSTRACT:
+SYNOPSIS
+     use Math::Geometry::Planar::Offset;
 
-This module provides a polygon offsetting function.  The offset
-calculated is a 'sharp cornered offset'. Both negative and positve
-offsets are supported
+AUTHOR
+    Eric Wilhelm <ewilhelm at sbcglobal dot net>
 
-For full information on usage, see the accompanying man and html
+COPYRIGHT NOTICE
+    Copyright (C) 2003 Eric Wilhelm
 
-COPYRIGHT INFO
+NO WARRANTY
+    Absolutely, positively NO WARRANTY, neither express or implied, is
+    offered with this software. You use this software at your own risk. In
+    case of loss, neither Eric Wilhelm, nor anyone else, owes you anything
+    whatseover. You have been warned.
 
-This code is copyright 2002 by Eric Wilhelm and A. Zahner Co.
-It may be freely modified and distributed under the same licensing terms as Perl
-provided that this notice remains intact and that all changes are documented 
+    Note that this includes NO GUARANTEE of MATHEMATICAL CORRECTNESS. If you
+    are going to use this code in a production environment, it is YOUR
+    RESPONSIBILITY to verify that the methods return the correct values.
 
-THE LATEST VERSION IS 1.02
+LICENSE
+    You may use this software under one of the following licenses:
 
-INSTALLATION:
+      (1) GNU General Public License 
+        (found at http://www.gnu.org/copyleft/gpl.html) 
+      (2) Artistic License 
+        (found at http://www.perl.com/pub/language/misc/Artistic.html)
 
-Read these instructions all the way through before you start!
+Dependencies
+      CAD::Calc
+      Math::Geometry::Planar
 
-this is not guaranteed.
+CHANGES
+      1.02
+        First Public Release
 
-3.  Unpack the tar file:
+      1.03
+        Code cleanup
 
-	zcat Math-Geometry-Planar-Offset-1.XX.tar.gz | tar xvf -
+BUGS
+    There are currently some problems with concurrent edge events on outward
+    (and maybe inward) offsets. Some significant changes need to be made.
 
-    (Where "XX" is the most recent revision number.)  This will create
-    the directory Math-Geometry-Planar-Offset-1.XX.
+METHODS
+    These methods are actually defined in Math::Geometry::Planar, which uses
+    this module.
 
-4.  and execute the standard installation steps
+  offset_polygon
+    Returns reference to an array of polygons representing the original
+    polygon offsetted by $distance
 
-	a.  cd Math-Geometry-Planar-Offset-1.XX
-	b.  perl Makefile.PL
-	c.  make
-        d.  make test (optional)
-	e.  make html (optional)
-	f.  make install
+      $polygon->offset_polygon($distance);
 
-    This will create Offset.pm, its HTML manual page, and install Offset into
-    the system-wide Perl library directory.  You'll need root
-    privileges to do the install step.  If you don't have them, see below.
+Functions
+    Only OffsetPolygon is exported.
 
-IF YOU RUN INTO PROBLEMS
+  pi
+    Returns the constant pi
 
-FREQUENTLY ASKED QUESTIONS
+  OffsetPolygon
+    Make offset polygon subroutine.
 
-BUG REPORTS
+    Call with offset distance and ref to array of points for original
+    polygon polygon input must be pre-wrapped so point[n]=point[0]
 
-Feel free to contact me via e-mail, subject to the caveats below.
-Provide the version numbers of Offset, Perl, make and model
-of your operating system, and make and model of your Web server, if
-appropriate.  Provide a small script that demonstrates the bug.
+    Will return a list of polygons (as refs)
 
-WHAT'S NEW IN 1.XX
-
-ACKNOWLEDGEMENTS:
-
-UPDATES:
-
-The current version of Math::Geometry::Planar::Offset can be found at:
-
-   http://www.cpan.org
-
-AUTHOR:
-
-Eric Wilhelm
-ewilhelm@azahner.com
-http://www.azhaner.com

@@ -2,4 +2,9 @@ Revision history for Perl extension MAth::Geometry::Planar::Offset.
 
 1.00  Thu Jun 12 14:36:09 2003
 	- First relesase
-
+1.01  Thu Jun 23 10:05:09 2003
+	- remove use clause for Math::Geometry::Planar
+        - handles coiniciding points, colinear points and spikes
+          correctly now
+        - no more need for 'wrapped' (first point = last poing) polygons
+         

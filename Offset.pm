@@ -5,18 +5,31 @@
 
 package Math::Geometry::Planar::Offset;
 
-use vars qw($VERSION);
-$VERSION = '1.00';
-my $debug   = 0;
 
-require Exporter;
-@ISA='Exporter';
-@EXPORT = qw/OffsetPolygon
-            /;
+$VERSION = '1.01';
+
+use vars qw(
+            $VERSION
+            @ISA
+            @EXPORT
+            @EXPORT_OK
+            $precision
+            $debug
+           );
 
 use strict;
 use Carp;
-use Math::Geometry::Planar;
+
+$debug     = 1;
+$precision = 7;
+
+require Exporter;
+@ISA       = qw(Exporter);
+@EXPORT    = qw(OffsetPolygon);
+@EXPORT_OK = qw(
+                $precision
+                $debug
+               );
 
 =pod
 
@@ -40,6 +53,8 @@ offsetted by $distance
 =cut
 
 require 5.005;
+
+my $delta = 10 ** (-$precision);
 
 my $offset_depth;
 my $screen_height = 600;
@@ -74,7 +89,6 @@ sub OffsetPolygon {
   my @result1;
   my @result2;
   my @outlist;
-  my @kill_flags;
   my ($cut1,$cut2,$cut);
   $#outlist = 0;
   my @newpoints;
@@ -90,8 +104,8 @@ sub OffsetPolygon {
   # FIXME:  $offset_depth would have to be reset by calling script 
   # (should actually be incremented and decremented on each side of recursive call)
   # $offset_depth++;
-  my $npoints = $#{$loc_points};
-  $debug && print "points: ", $loc_points + 1, "\n";
+  my $npoints = @{$loc_points};
+  $debug && print "points: ", $npoints, "\n";
   $debug && print "number of points $npoints\n";
   # print "points: @{$$loc_points[0]}\n";
   # exit;
@@ -100,64 +114,29 @@ sub OffsetPolygon {
   find_direction($loc_points,\@angles,\@directions);
   ($debug) && print "starting recurse: ",$offset_depth -1,"\n";
   ($debug) && print "offset:  $offset\n";
-  # Seem to have a problem with incoming null points
-  $#kill_flags = 0;
-  $kill_flags[0] = "";
-  for($n = 0;$n<$npoints;$n++) {
-    if( (abs($$loc_points[$n][0]) < 1e-10) & (abs($$loc_points[$n][0]) <1e-10) ) {
-      ($debug) && print "damned null points:  $n ( $$loc_points[$n][0],$$loc_points[$n][1] )\n";
-      ($debug) && print "number of points:  $npoints\n";
-      push (@kill_flags,$n);
-    } else {
-      ($debug) && printf ("point: %d [%6.6f,%6.6f]\n",$n,$$loc_points[$n][0],$$loc_points[$n][1]);
-    }
-  }
-  my $shift=0;
-  if($kill_flags[0] ne "") {
-    foreach $flag (@kill_flags) {
-      splice(@{$loc_points},$flag-$shift,1);
-      $shift++;
-    }
-    # Correct point count
-    $npoints = $#{$loc_points};
-    # Show me what is happening.
-    ($debug) && print "killing...\n";
-    for($n = 0; $n<$npoints;$n++) {
-      $debug && printf ("point: %d (%6.2f,%6.2f)\n",$n,$$loc_points[$n][0],$$loc_points[$n][1]);
-    }
-  }
-  
-  if($npoints <3) {
-    ($debug) && print "not enough points to offset\n";
-    return();
+  # ew removed junk related to null points
+  # bail out if not at least a triangle
+  if($npoints < 3) {
+    carp("Need at least 3 non-colinear points to offset");
+    return;
   }
   # Now to make the bisectors
   for($n = 0;$n < $npoints;$n++) {
     $phi[$n] = ((pi) - $angles[$n]) / 2;
-    if ($phi[$n]) {
-      $bis_scale[$n] = abs(1 / sin($phi[$n]));
-    } else {
-      $bis_scale[$n] = 1/ 0.00001;
-    }
-    #if($phi[$n]){$bis_scale[$n] = 1 / sin($phi[$n]);}else{$bis_scale[$n] = 1/ 0.00001;};
+    $bis_scale[$n] = abs(1 / sin($phi[$n]));
     $bis_dir[$n] = $directions[$n] + $phi[$n];
     $bis_end[$n][0] = $$loc_points[$n][0] + $offset * $bis_scale[$n] * cos($bis_dir[$n]);  # X-coordinate
     $bis_end[$n][1] = $$loc_points[$n][1] + $offset * $bis_scale[$n] * sin($bis_dir[$n]);  # Y-coordinate
-    };
-  # put the wrap on it
-  @{$bis_end[$npoints]} = @{$bis_end[0]};
+  };
   
-  # Delete existing bisectors
+  # Draw bisectors
   if ($canvas) {
-    # print "$canvas canvas\n"x80;
+    # first delete existing bisectors
     for($n = 0; $n<@bisectors;$n++) {
       $canvas ->delete($bisectors[$n]);
     }
     @bisectors = ();
-  }
-  
-  # draw the bisector points from the vertices.
-  if ($canvas) {
+    # then draw the bisector points from the vertices.
     for($n = 0; $n < $npoints; $n++) {
       my $x1 = $$loc_points[$n][0];
       my $y1 = $screen_height-$$loc_points[$n][1];
@@ -167,12 +146,9 @@ sub OffsetPolygon {
     }
   }
   
-  
   # Need to find whether a bisector first intersects a bisector,
   # or a bisector first intersects a "ghost" edge.  Also, must know
   # which one and at what time:
-  
-  
   my ($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$By1,$Bx2,$By2);
   my ($delAx,$delAy,$delBx,$delBy,$Am,$Ab,$Bm,$Bb);
   my ($x_int,$y_int);
@@ -185,8 +161,7 @@ sub OffsetPolygon {
   my $split_time = $first_time;
   
   # first find intersections of adjacent bisectors (if any)
-  for($n = 0;$n <$npoints;$n++)
-    {
+  for($n = 0;$n <$npoints;$n++) {
     $Ax1 = $$loc_points[$n][0];
     $Ay1 = $$loc_points[$n][1];
     $Ax2 = $bis_end[$n][0];
@@ -195,10 +170,10 @@ sub OffsetPolygon {
     $delAy = $Ay2 - $Ay1;
     if($delAx)  {$Am = $delAy / $delAx;  $Ab = $Ay1 - $Ax1 * $Am;}else{$Am = "inf";};
     # Check against the next bisector:
-    $Bx1 = $$loc_points[$n+1][0];
-    $By1 = $$loc_points[$n+1][1];
-    $Bx2 = $bis_end[$n+1][0];
-    $By2 = $bis_end[$n+1][1];
+    $Bx1 = $$loc_points[$n+1-$npoints][0];
+    $By1 = $$loc_points[$n+1-$npoints][1];
+    $Bx2 = $bis_end[$n+1-$npoints][0];
+    $By2 = $bis_end[$n+1-$npoints][1];
     $delBx = $Bx2 - $Bx1;
     $delBy = $By2 - $By1;
     if($delBx)  {$Bm = $delBy / $delBx;$Bb = $By1 - $Bx1 * $Bm;  }else{$Bm = "inf";};
@@ -207,13 +182,17 @@ sub OffsetPolygon {
     if  (! do_cross($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$By1,$Bx2,$By2) ){next;};
     # if we have an intersection of the skeleton and only a triangle,
     # then it has collapsed to a point:
-    if($npoints<4){$debug && print "collapsed\n";return();};
-    if($Am eq "inf")  # Slope of first line is infinite, so use Ax1.
-      {$x_int = $Ax1;  # Will always be on vertical line.
-      $y_int = $Bm * $x_int + $Bb;}
-    elsif($Bm eq "inf")    # Slope of second line is infinite, so use Bx1.
-      {$x_int = $Bx1;$y_int = $Am * $x_int + $Ab;}
-    else{$x_int = ($Bb - $Ab) / ($Am - $Bm);$y_int = $Am *$x_int + $Ab;};
+    if($npoints < 4) {
+      $debug && print "collapsed\n";return();
+    }
+    if($Am eq "inf") {  # Slope of first line is infinite, so use Ax1.
+      $x_int = $Ax1;    # Will always be on vertical line.
+      $y_int = $Bm * $x_int + $Bb;
+    } elsif($Bm eq "inf") {  # Slope of second line is infinite, so use Bx1.
+      $x_int = $Bx1;$y_int = $Am * $x_int + $Ab;
+    } else {
+      $x_int = ($Bb - $Ab) / ($Am - $Bm);$y_int = $Am *$x_int + $Ab;
+    }
     # Now, if the lines are not parallel, and the intersection
     # happens on the line segments, we are here with
     # the x and y coordinates of the intersection of the two lines.
@@ -268,8 +247,8 @@ sub OffsetPolygon {
       $debug && print "inner loop at n2 = $n2\n";
       $Bx1 = $$loc_points[$n2][0];  # Get edge endpoints
       $By1 = $$loc_points[$n2][1];
-      $Bx2 = $$loc_points[$n2+1][0];
-      $By2 = $$loc_points[$n2+1][1];
+      $Bx2 = $$loc_points[$n2+1-$npoints][0];
+      $By2 = $$loc_points[$n2+1-$npoints][1];
       $delBx = $Bx2 - $Bx1;
       $delBy = $By2 - $By1;
       if($delBx)  {$Bm = $delBy / $delBx;$Bb = $By1 - $Bx1 * $Bm;  }else{$Bm = "inf";};
@@ -331,8 +310,8 @@ sub OffsetPolygon {
         # Does time_dir belong here? (yes for test case A)
         $Bx1 = $$loc_points[$n2][0] + $time_static  * $bis_scale[$n2] * cos($bis_dir[$n2]);
         $By1 = $$loc_points[$n2][1] + $time_static  * $bis_scale[$n2] *  sin($bis_dir[$n2]);
-        $Bx2 = $$loc_points[$n2+1][0] + $time_static * $bis_scale[$next] * cos($bis_dir[$next]);
-        $By2 = $$loc_points[$n2+1][1] + $time_static * $bis_scale[$next] * sin($bis_dir[$next]);
+        $Bx2 = $$loc_points[$n2+1-$npoints][0] + $time_static * $bis_scale[$next] * cos($bis_dir[$next]);
+        $By2 = $$loc_points[$n2+1-$npoints][1] + $time_static * $bis_scale[$next] * sin($bis_dir[$next]);
         if(! do_cross($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$By1,$Bx2,$By2) ){next;};
         $time = $time_static;
         # make sure the case controls and is in the right direction.  (required for case A)
@@ -368,11 +347,10 @@ sub OffsetPolygon {
     if($first_event eq "join") {
       # How are coincident events handled?
       # remove the offending point and call yourself with time adjusted.
-      $#newpoints = 0;
-      for($n = 0; $n<$npoints; $n++)
-      {
-      $newpoints[$n][0] = $$loc_points[$n][0] + $first_time  * $time_dir* $bis_scale[$n] * cos($bis_dir[$n]);
-      $newpoints[$n][1]  = $$loc_points[$n][1] + $first_time  * $time_dir* $bis_scale[$n] * sin($bis_dir[$n]);
+      @newpoints = ();
+      for($n = 0; $n<$npoints; $n++) {
+        $newpoints[$n][0] = $$loc_points[$n][0] + $first_time * $time_dir* $bis_scale[$n] * cos($bis_dir[$n]);
+        $newpoints[$n][1] = $$loc_points[$n][1] + $first_time * $time_dir* $bis_scale[$n] * sin($bis_dir[$n]);
       };
       # keep the one with the smaller scale.
       if($bis_scale[$first_join]<$bis_scale[$first_join+1]) {
@@ -381,13 +359,13 @@ sub OffsetPolygon {
         splice(@newpoints,$first_join,1);
       }
       $npoints--;
-      @{$newpoints[$npoints]} = @{$newpoints[0]};
+      # @{$newpoints[$npoints]} = @{$newpoints[0]};
       $new_offset = $offset - $first_time * $time_dir;  # put a direction on it.
       @outlist = OffsetPolygon(\@newpoints,$new_offset) ;
       return(@outlist);
     } elsif ($first_event eq "split") {
       # make two polygons and call yourself with time adjusted.
-      $#newpoints = 0;
+      @newpoints = ();
       my @split_check;
       my @split_check1;
       for($n = 0; $n<$npoints; $n++)
@@ -397,9 +375,9 @@ sub OffsetPolygon {
       $split_check[$n] = $n;
       };
       $new_offset = $offset - $first_time * $time_dir;
-      $#newpoints1 = 0;
+      @newpoints1 = ();
       @newpoints1 = @newpoints;
-        $#split_check1 = 0;
+        @split_check1 = ();
         @split_check1 = @split_check;
       # have first_split and split_seg, must find a way to wrap around.
       my $cut_startA;
@@ -420,26 +398,22 @@ sub OffsetPolygon {
       }
       splice(@newpoints,$cut_startA,$cut1);
       splice(@newpoints,0,$cut2);
-        splice(@split_check,$cut_startA,$cut1);
-        splice(@split_check,0,$cut2);
+      splice(@split_check,$cut_startA,$cut1);
+      splice(@split_check,0,$cut2);
       splice(@newpoints1,$cut_startB,$cutB);
-        splice(@split_check1,$cut_startB,$cutB);
+      splice(@split_check1,$cut_startB,$cutB);
       my $num = @newpoints;
-      @{$newpoints[$num]} = @{$newpoints[0]};
       my $num1 = @newpoints1;
-      @{$newpoints1[$num1]} = @{$newpoints1[0]};
   
       ($debug) && print "split was:\n@split_check\n@split_check1\n";
       ($debug) && print "first splitted:\n";
-      for($n = 0; $n<=$num;$n++)
-        {
+      for($n = 0; $n<$num;$n++) {
         ($debug) && printf ("point: %d  (%6.2f,%6.2f)\n",$n,@{$newpoints[$n]});
-        };
+      }
       ($debug) && print "second splitted:\n";
-      for($n = 0; $n <= $num1;$n++)
-        {
+      for($n = 0; $n < $num1;$n++) {
         ($debug) && printf ("point: %d  (%6.2f,%6.2f)\n",$n,@{$newpoints1[$n]});
-        };
+      }
       $#result1 = 0;
       shift(@result1);
       $#result2 = 0;
@@ -454,13 +428,12 @@ sub OffsetPolygon {
   } else {
     # No splits or joins needed, so offset the thing.
     # Bisector endpoints should be available.
-    $#newpoints = 0;
+    @newpoints = ();
     for($n = 0; $n<$npoints; $n++)
       {
       $newpoints[$n][0] = $$loc_points[$n][0] + $offset * $bis_scale[$n] * cos($bis_dir[$n]);
       $newpoints[$n][1] = $$loc_points[$n][1] + $offset * $bis_scale[$n] * sin($bis_dir[$n]);
       };
-    @{$newpoints[$npoints]} = @{$newpoints[0]};
     return( \@newpoints);
     };
   # return a reference to an array of polygons which are arrays of points
@@ -474,41 +447,52 @@ sub OffsetPolygon {
 # Forcing counter-clockwise currently not done here, but maybe should.
 sub find_direction {
   my($coords,$del_theta,$thetas) = @_;
-  my ($n,$n2,$n3);
-  my ($theta_A,$theta_B);
-  my ($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$Bx2,$By1,$By2);
-  my ($delAx,$delAy,$delBx,$delBy);
   my $sum_theta=0;
   my $sum_delta_theta = 0;
-  $#{$del_theta}=0;        # Clear arrays referenced for in-place modification.
-  $#{$thetas} = 0;
-  my $npoints = $#{$coords};    # Get the number of points from the polygon itself.
-
-  for($n = 0;$n < $npoints;$n++) {
-    $n2 = $n + 1;
-    $n3 = $n - 1;
-    if($n3<0){$n3=$npoints-1;};
-    $Ax1 = ${$coords}[$n][0];    # Line leaving point
-    $Ay1 = ${$coords}[$n][1];    # this is the one belonging to the point
-    $Ax2 = ${$coords}[$n2][0];
-    $Ay2 = ${$coords}[$n2][1];
-    $delAx = $Ax2 - $Ax1;
-    $delAy = $Ay2 - $Ay1;
-    $Bx1 = ${$coords}[$n3][0];    # Line coming to point n
-    $By1 = ${$coords}[$n3][1];
-    $Bx2 = ${$coords}[$n][0];
-    $By2 = ${$coords}[$n][1];
-    $delBx = $Bx2 - $Bx1;
-    $delBy = $By2 - $By1;
-    $theta_A = atan2($delAy,$delAx);    # Angle of leaving line
-    $theta_B = atan2($delBy,$delBx);    # Angle of coming line
-    ${$thetas}[$n] = $theta_A;
-    ${$del_theta}[$n] = $theta_A- $theta_B;
-    if (${$del_theta}[$n] < -(pi)) {
-      ${$del_theta}[$n] += 2 * (pi);
-    } elsif (${$del_theta}[$n] > (pi)) {
-      ${$del_theta}[$n] -= 2 * (pi);
+  @{$del_theta} = ();        # Clear arrays referenced for in-place modification.
+  @{$thetas}    = ();
+  my $n = 0;
+  for(;;) {
+    last if ($n == @{$coords});
+    # dvdp: take advantage of negative indexing in Perl
+    my $n2 = $n - @{$coords} + 1;
+    my $n3 = $n - 1;
+    my $Ax1 = ${$coords}[$n][0];   # Line leaving point
+    my $Ay1 = ${$coords}[$n][1];   # this is the one belonging to the point
+    my $Ax2 = ${$coords}[$n2][0];
+    my $Ay2 = ${$coords}[$n2][1];
+    my $delAx = $Ax2 - $Ax1;
+    my $delAy = $Ay2 - $Ay1;
+    my $Bx1 = ${$coords}[$n3][0];  # Line coming to point n
+    my $By1 = ${$coords}[$n3][1];
+    my $Bx2 = ${$coords}[$n][0];
+    my $By2 = ${$coords}[$n][1];
+    my $delBx = $Bx2 - $Bx1;
+    my $delBy = $By2 - $By1;
+    # dvdp remove coinciding points
+    if ( ((abs($delAx) < $delta) && (abs($delAy) < $delta)) ||
+         ((abs($delBx) < $delta) && (abs($delBy) < $delta)) ) {
+      splice @{$coords},$n,1;
+      next;
     }
+    my $theta_A  = atan2($delAy,$delAx);    # Angle of leaving line
+    my $theta_B  = atan2($delBy,$delBx);    # Angle of coming line
+    my $theta_AB = $theta_A - $theta_B;
+    if ($theta_AB < -(pi)) {
+      $theta_AB += 2 * (pi);
+    } elsif ($theta_AB > (pi)) {
+      $theta_AB -= 2 * (pi);
+    }
+    # dvdp remove colinear points (angle is 0 or pi)
+    if ( (abs($theta_AB) < $delta) ||
+         (abs($theta_AB - (pi)) < $delta) ) {
+      splice @{$coords},$n,1;
+      $n-- if ($n); # need to recalc thetas if spike removed !
+      next;
+    }
+    ${$thetas}[$n]    = $theta_A;
+    ${$del_theta}[$n] = $theta_AB;
+    $n++
     # $sum_theta += $theta_A;
     # $sum_delta_theta += ${$del_theta}[$n];
     # print "start at:\n";

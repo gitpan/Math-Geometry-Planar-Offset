@@ -1,0 +1,70 @@
+Offset.pm -- A polygon offset package
+
+ABSTRACT:
+
+This module provides a polygon offsetting function.  The offset
+calculated is a 'sharp cornered offset'. Both negative and positve
+offsets are supported
+
+For full information on usage, see the accompanying man and html
+
+COPYRIGHT INFO
+
+This code is copyright 2002 by Eric Wilhelm and A. Zahner Co.
+It may be freely modified and distributed under the same licensing terms as Perl
+provided that this notice remains intact and that all changes are documented 
+
+THE LATEST VERSION IS 1.00
+
+INSTALLATION:
+
+Read these instructions all the way through before you start!
+
+this is not guaranteed.
+
+3.  Unpack the tar file:
+
+	zcat Math-Geometry-Planar-Offset-1.XX.tar.gz | tar xvf -
+
+    (Where "XX" is the most recent revision number.)  This will create
+    the directory Math-Geometry-Planar-Offset-1.XX.
+
+4.  and execute the standard installation steps
+
+	a.  cd Math-Geometry-Planar-Offset-1.XX
+	b.  perl Makefile.PL
+	c.  make
+        d.  make test (optional)
+	e.  make html (optional)
+	f.  make install
+
+    This will create Offset.pm, its HTML manual page, and install Offset into
+    the system-wide Perl library directory.  You'll need root
+    privileges to do the install step.  If you don't have them, see below.
+
+IF YOU RUN INTO PROBLEMS
+
+FREQUENTLY ASKED QUESTIONS
+
+BUG REPORTS
+
+Feel free to contact me via e-mail, subject to the caveats below.
+Provide the version numbers of Offset, Perl, make and model
+of your operating system, and make and model of your Web server, if
+appropriate.  Provide a small script that demonstrates the bug.
+
+WHAT'S NEW IN 1.XX
+
+ACKNOWLEDGEMENTS:
+
+UPDATES:
+
+The current version of Math::Geometry::Planar::Offset can be found at:
+
+   http://www.cpan.org
+
+AUTHOR:
+
+Eric Wilhelm
+ewilhelm@azahner.com
+http://www.azhaner.com

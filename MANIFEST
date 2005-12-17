@@ -1,7 +1,8 @@
 Changes
-Offset.pm
-Makefile.PL
 MANIFEST
-README
-test.pl
+Build.PL
+Makefile.PL
 META.yml
+README
+lib/Math/Geometry/Planar/Offset.pm
+t/00-load.t

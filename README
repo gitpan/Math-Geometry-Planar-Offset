@@ -5,10 +5,10 @@ SYNOPSIS
      use Math::Geometry::Planar::Offset;
 
 AUTHOR
-    Eric Wilhelm <ewilhelm at sbcglobal dot net>
+    Eric Wilhelm <ewilhelm at cpan dot org>
 
 COPYRIGHT NOTICE
-    Copyright (C) 2003 Eric Wilhelm
+    Copyright (C) 2003-2005 Eric Wilhelm
 
 NO WARRANTY
     Absolutely, positively NO WARRANTY, neither express or implied, is
@@ -28,16 +28,15 @@ LICENSE
       (2) Artistic License 
         (found at http://www.perl.com/pub/language/misc/Artistic.html)
 
-Dependencies
-      CAD::Calc
-      Math::Geometry::Planar
-
 CHANGES
       1.02
         First Public Release
 
       1.03
         Code cleanup
+
+      1.03_01
+        Build file restructure.
 
 BUGS
     There are currently some problems with concurrent edge events on outward
@@ -65,5 +64,12 @@ Functions
     Call with offset distance and ref to array of points for original
     polygon polygon input must be pre-wrapped so point[n]=point[0]
 
-    Will return a list of polygons (as refs)
+    Will return a list of polygons (as refs.) The number of polygons in the
+    output depends on the shape of your input polygon. It may split into
+    several pieces during the offset.
+
+      my (@results) = OffsetPolygon(\@points, $distance);
+      foreach my $polygon (@results) {
+        # do something with @$polygon
+      }
 

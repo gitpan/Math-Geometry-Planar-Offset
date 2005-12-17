@@ -1,6 +1,6 @@
 package Math::Geometry::Planar::Offset;
 
-$VERSION = '1.03';
+$VERSION = '1.03_01';
 
 use vars qw(
             $VERSION
@@ -35,13 +35,14 @@ Math::Geometry::Planar::Offset - Calculate offset polygons
 
  use Math::Geometry::Planar::Offset;
 
+
 =head1 AUTHOR
 
-Eric Wilhelm <ewilhelm at sbcglobal dot net>
+Eric Wilhelm <ewilhelm at cpan dot org>
 
 =head1 COPYRIGHT NOTICE
 
-Copyright (C) 2003 Eric Wilhelm
+Copyright (C) 2003-2005 Eric Wilhelm
 
 =head1 NO WARRANTY
 
@@ -63,11 +64,6 @@ You may use this software under one of the following licenses:
   (2) Artistic License 
     (found at http://www.perl.com/pub/language/misc/Artistic.html)
 
-=head1 Dependencies
-
-  CAD::Calc
-  Math::Geometry::Planar
-
 =head1 CHANGES
 
   1.02
@@ -75,6 +71,9 @@ You may use this software under one of the following licenses:
 
   1.03
     Code cleanup
+
+  1.03_01
+    Build file restructure.
 
 =head1 BUGS
 
@@ -126,7 +125,14 @@ Make offset polygon subroutine.
 Call with offset distance and ref to array of points for original
 polygon polygon input must be pre-wrapped so point[n]=point[0]
 
-Will return a list of polygons (as refs)
+Will return a list of polygons (as refs.)  The number of polygons in the
+output depends on the shape of your input polygon.  It may split into
+several pieces during the offset.
+
+  my (@results) = OffsetPolygon(\@points, $distance);
+  foreach my $polygon (@results) {
+    # do something with @$polygon
+  }
 
 =cut
 sub OffsetPolygon {
@@ -426,10 +432,10 @@ sub OffsetPolygon {
 	if($first_time <= abs($offset)) {
 		if($debug) {
 			if($first_event eq "join") {
-				printf ("join vertex %d at time %6.2f\n",$first_join,$first_time);
+				printf("join vertex %d at time %6.2f\n",$first_join,$first_time);
 			}
 			if($first_event eq "split") {
-				printf (
+				printf(
 					"split segment %d with vertex %d at time %6.2f\n",
 					$split_seg,$first_split,$first_time
 					);

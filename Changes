@@ -1,10 +1,11 @@
-Changes
-      1.02
-        First Public Release
+1.04
+	Build file restructure.
+	Documentation.
+	Added functionality/expect tests.
 
-      1.03
-        Code cleanup
+1.03
+	Code cleanup
 
-      1.03_01
-        Build file restructure.
+1.02
+	First Public Release
 

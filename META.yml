@@ -1,19 +1,19 @@
 ---
 name: Math-Geometry-Planar-Offset
-version: 1.03_01
-author:
-  - Eric Wilhelm <ewilhelm at cpan dot org>
+version: 1.04
+author: []
 abstract: Calculate offset polygons
 license: perl
 resources:
   license: http://dev.perl.org/licenses/
 requires:
   Test::More: 0
+  YAML: 0
 provides:
   Math::Geometry::Planar::Offset:
     file: lib/Math/Geometry/Planar/Offset.pm
-    version: 1.03_01
-generated_by: Module::Build version 0.2703
+    version: 1.04
+generated_by: Module::Build version 0.28
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

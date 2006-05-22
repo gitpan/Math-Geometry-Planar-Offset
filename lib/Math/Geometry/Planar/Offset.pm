@@ -1,26 +1,20 @@
 package Math::Geometry::Planar::Offset;
 
-$VERSION = '1.03_01';
-
-use vars qw(
-            $VERSION
-            @ISA
-            @EXPORT
-            @EXPORT_OK
-            $precision
-            $debug
-           );
+our $VERSION = '1.04';
 
 use strict;
+use warnings;
+
 use Carp;
 
-$debug     = 0;
-$precision = 7;
+our $debug     = 0;
+our $precision = 7;
 
 require Exporter;
-@ISA       = qw(Exporter);
-@EXPORT    = qw(OffsetPolygon);
-@EXPORT_OK = qw(
+our @ISA       = qw(Exporter);
+our @EXPORT    = qw();
+our @EXPORT_OK = qw(
+				OffsetPolygon
                 $precision
                 $debug
                );
@@ -33,8 +27,12 @@ Math::Geometry::Planar::Offset - Calculate offset polygons
 
 =head1 SYNOPSIS
 
- use Math::Geometry::Planar::Offset;
+  use Math::Geometry::Planar::Offset;
 
+  my (@results) = OffsetPolygon(\@points, $distance);
+  foreach my $polygon (@results) {
+    # do something with @$polygon
+  }
 
 =head1 AUTHOR
 
@@ -42,7 +40,7 @@ Eric Wilhelm <ewilhelm at cpan dot org>
 
 =head1 COPYRIGHT NOTICE
 
-Copyright (C) 2003-2005 Eric Wilhelm
+Copyright (C) 2003-2006 Eric L. Wilhelm.  All rights reserved.
 
 =head1 NO WARRANTY
 
@@ -63,17 +61,6 @@ You may use this software under one of the following licenses:
     (found at http://www.gnu.org/copyleft/gpl.html) 
   (2) Artistic License 
     (found at http://www.perl.com/pub/language/misc/Artistic.html)
-
-=head1 CHANGES
-
-  1.02
-    First Public Release
-
-  1.03
-    Code cleanup
-
-  1.03_01
-    Build file restructure.
 
 =head1 BUGS
 
@@ -96,11 +83,11 @@ offsetted by $distance
 
 =cut
 
-require 5.005;
+require 5.005; # XXX might need newer
 
 my $delta = 10 ** (-$precision);
 
-my $offset_depth;
+my $offset_depth = 0;
 my $screen_height = 600;
 my $flag;
 my @bisectors;
@@ -170,7 +157,7 @@ sub OffsetPolygon {
 	# exit;
 	# my $bis_length = 15;
 	# All polygons should be counter-clockwise !!!
-	find_direction($points,\@angles,\@directions);
+	_find_direction($points,\@angles,\@directions);
 	$debug and print "starting recurse: ",$offset_depth -1,"\n";
 	$debug and print "offset:  $offset\n";
 	# ew removed junk related to null points
@@ -252,7 +239,7 @@ sub OffsetPolygon {
 			next;
 		}
 		# Calculate determinants to find if intersection is within the bisector segment.
-		if  (! do_cross($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$By1,$Bx2,$By2) ){
+		if  (! _do_cross($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$By1,$Bx2,$By2) ){
 			next;
 		}
 		# if we have an intersection of the skeleton and only a triangle,
@@ -403,7 +390,7 @@ sub OffsetPolygon {
 					$By1 = $points->[$n2][1] + $time_static  * $bis_scale[$n2] *  sin($bis_dir[$n2]);
 					$Bx2 = $points->[$n2 + 1 - $npoints][0] + $time_static * $bis_scale[$next] * cos($bis_dir[$next]);
 					$By2 = $points->[$n2 + 1 - $npoints][1] + $time_static * $bis_scale[$next] * sin($bis_dir[$next]);
-					if(! do_cross($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$By1,$Bx2,$By2) ) {
+					if(! _do_cross($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$By1,$Bx2,$By2) ) {
 						next;
 					}
 					$time = $time_static;
@@ -563,7 +550,7 @@ sub OffsetPolygon {
 # Returns total change in angle (as radians (everything is as radians)).
 # Second two array refs are optional.
 # Forcing counter-clockwise currently not done here, but maybe should.
-sub find_direction {
+sub _find_direction {
 	my($coords,$del_theta,$thetas) = @_;
 	my $sum_theta=0;
 	my $sum_delta_theta = 0;
@@ -611,11 +598,10 @@ sub find_direction {
 		${$del_theta}[$n] = $theta_AB;
 		$n++
 	}
-}  # End find_direction sub
+}  # End _find_direction sub
 #########################################################################
-# Define do_cross subroutine.
 # Determines if a pair of line segments have an intersection.
-sub do_cross {
+sub _do_cross {
 	my ($Ax1,$Ay1,$Ax2,$Ay2,$Bx1,$By1,$Bx2,$By2) = @_;
 	# Calculate four relevant minor determinants
 	my $det_123=($Ax2 - $Ax1)*($By1 - $Ay1) - ($Bx1 - $Ax1)*($Ay2 - $Ay1);
@@ -628,7 +614,7 @@ sub do_cross {
 	else {
 		return(1);
 	}
-}  # End do_cross subroutine definition
+}  # End _do_cross subroutine definition
 ########################################################################
 
 1;

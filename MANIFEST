@@ -1,8 +1,12 @@
+Build.PL
 Changes
 MANIFEST
-Build.PL
-Makefile.PL
 META.yml
+Makefile.PL
 README
 lib/Math/Geometry/Planar/Offset.pm
 t/00-load.t
+t/01-pod.t
+t/02-pod-coverage.t
+t/03-basic.t
+t/04-split.t

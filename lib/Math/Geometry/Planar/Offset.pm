@@ -1,6 +1,8 @@
 package Math::Geometry::Planar::Offset;
 
-our $VERSION = '1.04';
+require 5.006;
+
+our $VERSION = '1.05';
 
 use strict;
 use warnings;
@@ -36,11 +38,11 @@ Math::Geometry::Planar::Offset - Calculate offset polygons
 
 =head1 AUTHOR
 
-Eric Wilhelm <ewilhelm at cpan dot org>
+Eric Wilhelm @ <ewilhelm at cpan dot org>
 
 =head1 COPYRIGHT NOTICE
 
-Copyright (C) 2003-2006 Eric L. Wilhelm.  All rights reserved.
+Copyright (C) 2003-2007 Eric L. Wilhelm.  All rights reserved.
 
 =head1 NO WARRANTY
 
@@ -82,8 +84,6 @@ offsetted by $distance
   $polygon->offset_polygon($distance);
 
 =cut
-
-require 5.005; # XXX might need newer
 
 my $delta = 10 ** (-$precision);
 
